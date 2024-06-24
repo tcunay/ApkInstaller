@@ -16,18 +16,20 @@ public class ApkInstaller {
         if (file.exists()) {
             Uri uri;
             Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+            int flags;
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 
                 uri = InstallApplicationFileProvider.getUriForFile(Objects.requireNonNull(context),
                         "com.xbet.installapplication.installapplicationfileprovider", file);
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION;
             } else {
                 uri = Uri.fromFile(file);
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK;
             }
 
             intent.setDataAndType(uri, "application/vnd.android.package-archive");
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setFlags(flags);
 
             if (intent.resolveActivity(context.getPackageManager()) != null) {
                 context.startActivity(intent);
