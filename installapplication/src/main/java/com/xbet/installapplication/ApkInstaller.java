@@ -12,6 +12,8 @@ import java.util.Objects;
 
 public class ApkInstaller {
 
+    private static final int PERMISSION_CODE = 1234;
+
     public static void InstallAPK(String apkPath, Context context, InstallCallback callback) {
         File file = new File(apkPath);
 
@@ -54,23 +56,23 @@ public class ApkInstaller {
     }
 
     public static void OpenSettings(Context context) {
-        Intent intent;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
-            intent.setData(Uri.parse("package:" + context.getPackageName()));
-        } else {
-            // На версиях Android ниже O перенаправляем пользователя в основные настройки
-            intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
-        }
-        context.startActivity(intent);
+
+        ThrowIfNotActivity(context);
+        Intent intent = new Intent();
+        Activity activity = (Activity) context;
+
+        String settingsAction = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                ? Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
+                : Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
+
+        intent.setAction(settingsAction);
+        intent.setData(Uri.fromParts("package", activity.getPackageName(), null));
+        activity.startActivityForResult(intent, PERMISSION_CODE);
     }
 
-    public static void RestartApp(Context context) {
-        if (context instanceof Activity) {
-            Activity activity = (Activity) context;
-            Intent intent = activity.getIntent();
-            activity.finish();
-            activity.startActivity(intent);
+    private static void ThrowIfNotActivity(Context context){
+        if (!(context instanceof Activity)) {
+            throw new IllegalArgumentException("Context должен быть экземпляром Activity");
         }
     }
 
